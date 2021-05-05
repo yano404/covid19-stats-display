@@ -676,21 +676,21 @@ void displaySummary()
   tft.setTextDatum(TC_DATUM); // Align top center
   tft.drawString("COVID-19 Summary / " + country, 160, 10);
 
-  tft.fillRoundRect(8, 35, 150, 55, 5, TFT_TEXT_BG_COLOR);
-  tft.fillRoundRect(8, 95, 150, 55, 5, TFT_TEXT_BG_COLOR);
-  tft.fillRoundRect(8, 155, 150, 55, 5, TFT_TEXT_BG_COLOR);
+  tft.fillRect(8, 35, 150, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(8, 95, 150, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(8, 155, 150, 55, TFT_TEXT_BG_COLOR);
 
-  tft.fillRoundRect(162, 35, 150, 55, 5, TFT_TEXT_BG_COLOR);
-  tft.fillRoundRect(162, 95, 150, 55, 5, TFT_TEXT_BG_COLOR);
-  tft.fillRoundRect(162, 155, 150, 55, 5, TFT_TEXT_BG_COLOR);
+  tft.fillRect(162, 35, 150, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(162, 95, 150, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(162, 155, 150, 55, TFT_TEXT_BG_COLOR);
 
   tft.setFreeFont(FM9);
   tft.drawString("Confirmed", 83, 40);
   tft.drawString("Deaths", 83, 100);
   tft.drawString("Recovered", 83, 160);
-  tft.drawString("Active", 237, 40);
-  tft.drawString("Incident Rate", 237, 100);
-  tft.drawString("Death Rate", 237, 160);
+  tft.drawString("Active", 236, 40);
+  tft.drawString("Incident Rate", 236, 100);
+  tft.drawString("Death Rate", 236, 160);
 
   tft.setTextDatum(TR_DATUM); // Align top right
   tft.setFreeFont(FMB12);
@@ -718,9 +718,9 @@ void displayDistinct()
   tft.setTextDatum(TC_DATUM); // Align top center
   tft.drawString(clipText(distinctList[distinctID], 310), 160, 10);
 
-  tft.fillRoundRect(10, 35, 300, 55, 5, TFT_TEXT_BG_COLOR);
-  tft.fillRoundRect(10, 95, 300, 55, 5, TFT_TEXT_BG_COLOR);
-  tft.fillRoundRect(10, 155, 300, 55, 5, TFT_TEXT_BG_COLOR);
+  tft.fillRect(10, 35, 300, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(10, 95, 300, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(10, 155, 300, 55, TFT_TEXT_BG_COLOR);
 
   tft.setFreeFont(FM9);
   tft.drawString("Total Confirmed", 160, 40);
@@ -801,7 +801,7 @@ int widgetChangeCountry()
   tft.fillRoundRect(10, 195, 300, 35, 5, TFT_TEXT_BG_COLOR);
 
   tft.setTextDatum(MC_DATUM); // Align mid center
-  tft.setFreeFont(FF18);
+  tft.setFreeFont(FF17);
   tft.setTextPadding(300);
 
   while (1)

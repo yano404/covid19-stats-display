@@ -256,6 +256,10 @@ const char *unstats_root_ca =
     "+OkuE6N36B9K\n"
     "-----END CERTIFICATE-----\n";
 
+const uint16_t TFT_TEXT_COLOR = tft.color565(230, 230, 230);
+const uint16_t TFT_BG_COLOR = tft.color565(5, 5, 5);
+const uint16_t TFT_TEXT_BG_COLOR = tft.color565(40, 40, 40);
+
 void setup()
 {
   Serial.begin(115200);
@@ -379,10 +383,6 @@ int widgetChangeCountry();
 void widgetChangeDistinct();
 // Function to clip text
 String clipText(const char *, int);
-
-const uint16_t TFT_TEXT_COLOR = tft.color565(224, 225, 232);
-const uint16_t TFT_BG_COLOR = tft.color565(24, 15, 60);
-const uint16_t TFT_TEXT_BG_COLOR = tft.color565(40, 40, 86);
 
 void loop()
 {
@@ -746,14 +746,14 @@ void displayDistinct()
 // Display people vaccinated
 void displayVaccinated()
 {
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(TFT_BG_COLOR);
   tft.setFreeFont(FF17);
-  tft.setTextColor(TFT_WHITE);
+  tft.setTextColor(TFT_TEXT_COLOR);
   tft.setTextDatum(TC_DATUM); // Align top center
   tft.drawString("Vaccination / " + country, 160, 10);
 
-  tft.fillRect(10, 35, 300, 55, tft.color565(50, 50, 50));
-  tft.fillRect(10, 95, 300, 55, tft.color565(50, 50, 50));
+  tft.fillRect(10, 35, 300, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(10, 95, 300, 55, TFT_TEXT_BG_COLOR);
 
   tft.setFreeFont(FM9);
   tft.drawString("Fully Vaccinated", 160, 40);
@@ -767,12 +767,12 @@ void displayVaccinated()
   tft.drawNumber(partiallyVaccinated, 160, 125);
 
   // Draw chart
-  tft.fillRect(10, 155, 300, 55, tft.color565(50, 50, 50));
+  tft.fillRect(10, 155, 300, 55, TFT_TEXT_BG_COLOR);
   tft.fillRect(11, 156, (int)298 * partiallyVaccinationRate / 100.0, 53, TFT_GREENYELLOW);
   tft.fillRect(11, 156, (int)298 * vaccinationRate / 100.0, 53, TFT_GREEN);
 
   tft.setFreeFont(FM9);
-  tft.setTextColor(TFT_WHITE);
+  tft.setTextColor(TFT_TEXT_COLOR);
   tft.setTextDatum(TR_DATUM); // Align top right
   tft.drawFloat(vaccinationRate, 2, 300, 165);
   tft.drawFloat(partiallyVaccinationRate, 2, 300, 190);
@@ -796,7 +796,7 @@ int widgetChangeCountry()
 
   tft.fillRoundRect(10, 35, 300, 35, 5, TFT_TEXT_BG_COLOR);
   tft.fillRoundRect(10, 75, 300, 35, 5, TFT_TEXT_BG_COLOR);
-  tft.fillRoundRect(10, 115, 300, 35, 5, TFT_WHITE);
+  tft.fillRoundRect(10, 115, 300, 35, 5, TFT_TEXT_COLOR);
   tft.fillRoundRect(10, 155, 300, 35, 5, TFT_TEXT_BG_COLOR);
   tft.fillRoundRect(10, 195, 300, 35, 5, TFT_TEXT_BG_COLOR);
 
@@ -808,7 +808,7 @@ int widgetChangeCountry()
   {
     if (selectedCountryID == 0)
     {
-      tft.setTextColor(TFT_BLACK, TFT_WHITE);
+      tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID], 160, 133);
       tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
       tft.drawString("", 160, 53);
@@ -818,7 +818,7 @@ int widgetChangeCountry()
     }
     else if (selectedCountryID == 1)
     {
-      tft.setTextColor(TFT_BLACK, TFT_WHITE);
+      tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID], 160, 133);
       tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
       tft.drawString("", 160, 53);
@@ -828,7 +828,7 @@ int widgetChangeCountry()
     }
     else if (selectedCountryID == COUNTRIES_NUM - 1)
     {
-      tft.setTextColor(TFT_BLACK, TFT_WHITE);
+      tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID], 160, 133);
       tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID - 2], 160, 53);
@@ -838,7 +838,7 @@ int widgetChangeCountry()
     }
     else if (selectedCountryID == COUNTRIES_NUM - 2)
     {
-      tft.setTextColor(TFT_BLACK, TFT_WHITE);
+      tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID], 160, 133);
       tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID - 2], 160, 53);
@@ -848,7 +848,7 @@ int widgetChangeCountry()
     }
     else
     {
-      tft.setTextColor(TFT_BLACK, TFT_WHITE);
+      tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID], 160, 133);
       tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID - 2], 160, 53);
@@ -921,7 +921,7 @@ void widgetChangeDistinct()
     /* [All] */
     while (1)
     {
-      tft.setTextColor(TFT_BLACK, TFT_WHITE);
+      tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
       tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
       tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
       tft.drawString("", 160, 53);
@@ -947,7 +947,7 @@ void widgetChangeDistinct()
     {
       if (selectedDistinctID == 0)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
@@ -958,7 +958,7 @@ void widgetChangeDistinct()
       else
       {
         /* selectedDistinctID == 1 */
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
@@ -1016,7 +1016,7 @@ void widgetChangeDistinct()
     {
       if (selectedDistinctID == 0)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
@@ -1026,7 +1026,7 @@ void widgetChangeDistinct()
       }
       else if (selectedDistinctID == 1)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
@@ -1037,7 +1037,7 @@ void widgetChangeDistinct()
       else
       {
         /* selectedDistinctID == 2 */
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
@@ -1095,7 +1095,7 @@ void widgetChangeDistinct()
     {
       if (selectedDistinctID == 0)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
@@ -1105,7 +1105,7 @@ void widgetChangeDistinct()
       }
       else if (selectedDistinctID == 1)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
@@ -1115,7 +1115,7 @@ void widgetChangeDistinct()
       }
       else if (selectedDistinctID == distinctNum - 1)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
@@ -1126,7 +1126,7 @@ void widgetChangeDistinct()
       else
       {
         /* selectedDistinctID == 2 */
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
@@ -1183,7 +1183,7 @@ void widgetChangeDistinct()
     {
       if (selectedDistinctID == 0)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
@@ -1193,7 +1193,7 @@ void widgetChangeDistinct()
       }
       else if (selectedDistinctID == 1)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
@@ -1203,7 +1203,7 @@ void widgetChangeDistinct()
       }
       else if (selectedDistinctID == distinctNum - 1)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
@@ -1213,7 +1213,7 @@ void widgetChangeDistinct()
       }
       else if (selectedDistinctID == distinctNum - 2)
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
@@ -1223,7 +1223,7 @@ void widgetChangeDistinct()
       }
       else
       {
-        tft.setTextColor(TFT_BLACK, TFT_WHITE);
+        tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);

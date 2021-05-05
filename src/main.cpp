@@ -282,6 +282,13 @@ void setup()
 
   tft.begin();
   tft.setRotation(3);
+  tft.setFreeFont(FM18);
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextDatum(BC_DATUM);
+  tft.drawString("COVID-19", 160, 115);
+  tft.setTextDatum(TC_DATUM);
+  tft.drawString("STATS DISPLAY", 160, 125);
+  tft.setTextDatum(TL_DATUM);
 
   // Connect to WiFi
   Serial.print("Attempting to connect to SSID: ");

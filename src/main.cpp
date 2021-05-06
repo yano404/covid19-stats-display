@@ -14,6 +14,7 @@ const char *ssid = "Your WiFi SSID";            // WiFi SSID
 const char *password = "Your WiFi Password";    // WiFi PASS
 const unsigned long REFRESH_INTERVAL = 3600000; // 60min
 int countryID = 18;                             // Default: Japan
+const int TRY_MAX_NUM = 5;
 
 // COUNTRIES_VACCINE_QUERY is used to get the number of vaccinated from API.
 // COUNTRIES_CASES_QUERY is used to get the cases from API.
@@ -336,6 +337,7 @@ DynamicJsonDocument docCases(JSON_OBJECT_SIZE(1000));
 DynamicJsonDocument docVaccinated(JSON_OBJECT_SIZE(50));
 /* History data is too heavy */
 //DynamicJsonDocument docHistory(JSON_OBJECT_SIZE(5000));
+DynamicJsonDocument docUNStats(JSON_OBJECT_SIZE(300));
 
 /*
  * 0 -> summary
@@ -345,7 +347,7 @@ DynamicJsonDocument docVaccinated(JSON_OBJECT_SIZE(50));
 int displaySwitch = 0;
 int distinctID = 0; // default: 0 -> All
 String country;
-double population;
+float population;
 unsigned long totalConfirmed;
 unsigned long totalDeaths;
 unsigned long totalRecovered;
@@ -360,14 +362,15 @@ float partiallyVaccinationRate;
 unsigned long distinctConfirmed;
 unsigned long distinctDeaths;
 unsigned long distinctRecovered;
-String distinctUpdated;
-String vaccinesUpdated;
+String distinctMsg;
+String vaccinesMsg;
+String summaryMsg;
 const char *distinctList[100];
 int distinctNum;
 
 // Get data from API and deserialize JSON
-void getDataMMedia(const String, DynamicJsonDocument &, const char *);
-void getDataUNStats(int, const char *);
+int getDataMMedia(const String, DynamicJsonDocument &);
+int getDataUNStats(int, DynamicJsonDocument &);
 
 // Display
 void display();
@@ -384,6 +387,8 @@ void widgetChangeDistinct();
 // Function to clip text
 String clipText(const char *, int);
 
+void drawFloatNum(float, int, uint16_t, uint16_t);
+
 void loop()
 {
   tft.setTextDatum(TL_DATUM); // Align top left (default)
@@ -393,24 +398,197 @@ void loop()
   String urlVaccinated = baseURLMMedia + "vaccines?country=" + COUNTRIES_VACCINE_QUERY[countryID];
   //String urlHistory = baseURLMMedia + "history?country=" + COUNTRIES_CASES_QUERY[countryID] + "&status=confirmed";
 
-  getDataMMedia(urlCases, docCases, "Get Cases Data!");
-  getDataMMedia(urlVaccinated, docVaccinated, "Get Vaccination Data!");
+  tft.fillScreen(TFT_BG_COLOR);
+  tft.fillRoundRect(10, 20, 300, 60, 5, TFT_TEXT_BG_COLOR);
+  tft.fillRoundRect(10, 90, 300, 60, 5, TFT_TEXT_BG_COLOR);
+  tft.fillRoundRect(10, 160, 300, 60, 5, TFT_TEXT_BG_COLOR);
+  tft.fillCircle(45, 50, 25, TFT_BG_COLOR);
+  tft.fillCircle(45, 120, 25, TFT_BG_COLOR);
+  tft.fillCircle(45, 190, 25, TFT_BG_COLOR);
+  tft.setTextDatum(ML_DATUM); // Align mid left
+  tft.setTextColor(TFT_TEXT_COLOR);
+  tft.drawString("Cases", 90, 50);
+  tft.drawString("Vaccination", 90, 120);
+  tft.drawString("UNStats", 90, 190);
+  tft.setTextDatum(TL_DATUM); // Align top left (default)
+
+  tft.setTextDatum(MC_DATUM); // Align mid center
+  int successCases = 0;
+  int successVaccines = 0;
+  int successUNStats = 0;
+  for (int i = 0; i < TRY_MAX_NUM; i++)
+  {
+    Serial.println(i);
+    if (getDataMMedia(urlCases, docCases))
+    {
+      successCases = 1;
+      break;
+    }
+  }
+  if (successCases)
+  {
+    tft.fillCircle(45, 50, 25, TFT_DARKGREEN);
+    tft.drawString("OK", 45, 50);
+    delay(100);
+  }
+  else
+  {
+    tft.fillCircle(45, 50, 25, TFT_RED);
+    tft.drawString("!", 45, 50);
+    delay(100);
+  }
+  for (int i = 0; i < TRY_MAX_NUM; i++)
+  {
+    Serial.println(i);
+    if (getDataMMedia(urlVaccinated, docVaccinated))
+    {
+      successVaccines = 1;
+      break;
+    }
+  }
+  if (successVaccines)
+  {
+    tft.fillCircle(45, 120, 25, TFT_DARKGREEN);
+    tft.drawString("OK", 45, 120);
+    delay(100);
+  }
+  else
+  {
+    tft.fillCircle(45, 120, 25, TFT_RED);
+    tft.drawString("!", 45, 120);
+    delay(100);
+  }
   //getDataMMedia(urlHistory, docHistory); // Too heavy
-  getDataUNStats(countryID, "Get UNStats Data!");
+  for (int i = 0; i < TRY_MAX_NUM; i++)
+  {
+    Serial.println(i);
+    if (getDataUNStats(countryID, docUNStats))
+    {
+      successUNStats = 1;
+      break;
+    }
+  }
+  if (successUNStats)
+  {
+    tft.fillCircle(45, 190, 25, TFT_DARKGREEN);
+    tft.drawString("OK", 45, 190);
+    delay(100);
+  }
+  else
+  {
+    tft.fillCircle(45, 190, 25, TFT_RED);
+    tft.drawString("!", 45, 190);
+    delay(100);
+  }
+  delay(1000);
+  tft.setTextDatum(TL_DATUM); // Align top left (default)
 
   country = COUNTRIES[countryID];
-  population = docCases["All"]["population"].as<double>();
-  totalConfirmed = docCases["All"]["confirmed"].as<unsigned long>();
-  totalDeaths = docCases["All"]["deaths"].as<unsigned long>();
-  totalRecovered = docCases["All"]["recovered"].as<unsigned long>();
-  totalActive = totalConfirmed - totalDeaths - totalRecovered;
-  vaccinated = docVaccinated["All"]["people_vaccinated"].as<unsigned long>();
-  partiallyVaccinated = docVaccinated["All"]["people_partially_vaccinated"].as<unsigned long>();
-  vaccinesUpdated = docVaccinated["All"]["updated"].as<String>();
-  administered = docVaccinated["All"]["administered"].as<unsigned long>();
-  mortalRate = (double)totalDeaths / totalConfirmed * 100.0;
-  vaccinationRate = (double)vaccinated / population * 100.0;
-  partiallyVaccinationRate = (double)partiallyVaccinated / population * 100.0;
+
+  if (successCases)
+  {
+    totalConfirmed = docCases["All"]["confirmed"].as<unsigned long>();
+    totalDeaths = docCases["All"]["deaths"].as<unsigned long>();
+    totalRecovered = docCases["All"]["recovered"].as<unsigned long>();
+    totalActive = totalConfirmed - totalDeaths - totalRecovered;
+    mortalRate = (float)totalDeaths / totalConfirmed * 100.0;
+
+    // Check the docCases has population.
+    // If population is not contained, unable to calculate accinationRate
+    if (docCases["All"].as<JsonObject>().containsKey("population"))
+    {
+      population = docCases["All"]["population"].as<float>();
+    }
+    else if (successVaccines && docVaccinated["All"].as<JsonObject>().containsKey("population"))
+    {
+      population = docVaccinated["All"]["population"].as<float>();
+    }
+    else
+    {
+      population = NAN;
+    }
+    // Generate distinctList
+    distinctNum = 0;
+    for (JsonObject::iterator itr = docCases.as<JsonObject>().begin(); itr != docCases.as<JsonObject>().end(); ++itr)
+    {
+      distinctList[distinctNum] = itr->key().c_str();
+      distinctNum++;
+    }
+    summaryMsg = "Success";
+  }
+  else if (successUNStats && countryID != COUNTRIES_NUM - 1)
+  {
+    // If it is failed to get the data from mmedia API, use the data from UNStats.
+    totalConfirmed = docUNStats["features"][0]["attributes"]["Confirmed"].as<unsigned long>();
+    totalDeaths = docUNStats["features"][0]["attributes"]["Deaths"].as<unsigned long>();
+    totalRecovered = docUNStats["features"][0]["attributes"]["Recovered"].as<unsigned long>();
+    totalActive = docUNStats["features"][0]["attributes"]["Active"].as<unsigned long>();
+    mortalRate = docUNStats["features"][0]["attributes"]["Mortality_Rate"].as<float>();
+    // UNStats data does not contain population, so can not find vaccinationRate.
+    // Some vaccination data contains population, if so, use this.
+    if (successVaccines && docVaccinated["All"].as<JsonObject>().containsKey("population"))
+    {
+      population = docVaccinated["All"]["population"].as<float>();
+    }
+    else
+    {
+      population = NAN;
+    }
+
+    distinctNum = 1;
+    distinctList[0] = "All";
+    deserializeJson(
+        docCases,
+        "{\"All\": {\"confirmed\":" +
+            String(totalConfirmed) +
+            "\"recovered\":" +
+            String(totalRecovered) + "\"deaths\":" +
+            String(totalDeaths) + "}}");
+    summaryMsg = "Partially failed";
+  }
+  else
+  {
+    // Unable to cases
+    totalConfirmed = 0;
+    totalDeaths = 0;
+    totalRecovered = 0;
+    totalActive = 0;
+    population = NAN;
+    summaryMsg = "Failed";
+  }
+
+  if (successUNStats)
+  {
+    if (countryID == COUNTRIES_NUM - 1)
+    {
+      incidentRate = NAN;
+    }
+    else
+    {
+      incidentRate = docUNStats["features"][0]["attributes"]["Incident_Rate"].as<float>();
+    }
+  }
+  else
+  {
+    incidentRate = NAN;
+  }
+
+  if (successVaccines)
+  {
+    vaccinated = docVaccinated["All"]["people_vaccinated"].as<unsigned long>();
+    partiallyVaccinated = docVaccinated["All"]["people_partially_vaccinated"].as<unsigned long>();
+    vaccinesMsg = docVaccinated["All"]["updated"].as<String>();
+    administered = docVaccinated["All"]["administered"].as<unsigned long>();
+  }
+  else
+  {
+    vaccinated = 0;
+    partiallyVaccinated = 0;
+    administered = 0;
+    vaccinesMsg = "Unable to get the data";
+  }
+  vaccinationRate = (float)vaccinated / population * 100.0;
+  partiallyVaccinationRate = (float)partiallyVaccinated / population * 100.0;
 
   Serial.println("[Data]");
   Serial.print("Country                    : ");
@@ -437,18 +615,12 @@ void loop()
   Serial.println(vaccinationRate);
   Serial.print("Vaccination Rate (x1 + x2) : ");
   Serial.println(partiallyVaccinationRate);
-  Serial.print("Vaccination Updated        : ");
-  Serial.println(vaccinesUpdated);
+  Serial.print("Vaccination Msg(Updated)   : ");
+  Serial.println(vaccinesMsg);
   Serial.println();
 
-  distinctNum = 0;
-  Serial.println("[Distincts]");
-  for (JsonObject::iterator itr = docCases.as<JsonObject>().begin(); itr != docCases.as<JsonObject>().end(); ++itr)
-  {
-    distinctList[distinctNum] = itr->key().c_str();
-    distinctNum++;
-  }
   // Check distinctList
+  Serial.println("[Distincts]");
   for (int i = 0; i != distinctNum; ++i)
   {
     Serial.println(distinctList[i]);
@@ -459,11 +631,11 @@ void loop()
   distinctRecovered = docCases[distinctList[distinctID]]["recovered"].as<unsigned long>();
   if (distinctID == 0)
   {
-    distinctUpdated = "";
+    distinctMsg = "";
   }
   else
   {
-    distinctUpdated = docCases[distinctList[distinctID]]["updated"].as<String>();
+    distinctMsg = docCases[distinctList[distinctID]]["updated"].as<String>();
   }
 
   // Display
@@ -525,16 +697,14 @@ void loop()
   Serial.println(loopCount);
 }
 
-void getDataMMedia(const String url, DynamicJsonDocument &doc, const char *successMsg)
+int getDataMMedia(const String url, DynamicJsonDocument &doc)
 {
   HTTPClient https;
+  int success = 0;
 
   //https.setTimeout(10000);
+  Serial.println("Attempting to get the data from MMedia");
   Serial.print("[HTTPS] begin...\n");
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE);
-  tft.setCursor((320 - tft.textWidth("Conectting to Server..")) / 2, 120);
-  tft.print("Connecting to Server..");
 
   if (https.begin(clientMMedia, url))
   { // HTTPS
@@ -553,34 +723,30 @@ void getDataMMedia(const String url, DynamicJsonDocument &doc, const char *succe
       // File found at server
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
       {
-        tft.fillScreen(TFT_BLACK);
-        tft.setCursor((320 - tft.textWidth(successMsg)) / 2, 120);
-        tft.print(successMsg);
-
         // Get Information
         String data = https.getString();
         Serial.println(data);
         // Deserialize JSON
         deserializeJson(doc, data);
+        success = 1;
       }
     }
     else
     {
-      Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
-      tft.fillScreen(TFT_BLACK);
-      tft.setCursor((320 - tft.textWidth("Connection failed!")) / 2, 120);
-      tft.print("Connection failed!");
+      Serial.printf("[HTTPS] GET data from MMedia... failed, error: %s\n", https.errorToString(httpCode).c_str());
     }
     https.end();
   }
+  return success;
 }
 
-void getDataUNStats(int countryID, const char *successMsg)
+int getDataUNStats(int countryID, DynamicJsonDocument &doc)
 {
+  int success = 0;
   if (countryID == COUNTRIES_NUM - 1)
   {
     // If country == Global: incident rate does not exist
-    incidentRate = NAN;
+    success = 1;
   }
   else
   {
@@ -597,10 +763,6 @@ void getDataUNStats(int countryID, const char *successMsg)
 
     Serial.print("Attempting to get the data from UNStats\n");
     Serial.print("[HTTPS] begin...\n");
-    tft.fillScreen(TFT_BLACK);
-    tft.setTextColor(TFT_WHITE);
-    tft.setCursor((320 - tft.textWidth("Conectting to Server..")) / 2, 120);
-    tft.print("Connecting to Server..");
 
     if (https.begin(clientUNStats, url))
     { // HTTPS
@@ -619,30 +781,22 @@ void getDataUNStats(int countryID, const char *successMsg)
         // File found at server
         if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
         {
-          tft.fillScreen(TFT_BLACK);
-          tft.setCursor((320 - tft.textWidth(successMsg)) / 2, 120);
-          tft.print(successMsg);
-
           // Get Information.
           String data = https.getString();
           Serial.println(data);
           // Deserialize JSON
-          DynamicJsonDocument doc(JSON_OBJECT_SIZE(300));
           deserializeJson(doc, data);
-
-          incidentRate = doc["features"][0]["attributes"]["Incident_Rate"].as<float>();
+          success = 1;
         }
       }
       else
       {
-        Serial.printf("[HTTPS] GET UNStats data... failed, error: %s\n", https.errorToString(httpCode).c_str());
-        tft.fillScreen(TFT_BLACK);
-        tft.setCursor((320 - tft.textWidth("Connection failed!")) / 2, 120);
-        tft.print("Connection failed!");
+        Serial.printf("[HTTPS] GET data from UNStats... failed, error: %s\n", https.errorToString(httpCode).c_str());
       }
       https.end();
     }
   }
+  return success;
 }
 
 void display()
@@ -705,8 +859,13 @@ void displaySummary()
   tft.setTextColor(TFT_RED);
   tft.drawNumber(totalActive, 302, 65);
   tft.setTextColor(TFT_TEXT_COLOR);
-  tft.drawFloat(incidentRate, 2, 302, 125);
-  tft.drawFloat(mortalRate, 2, 302, 185);
+  drawFloatNum(incidentRate, 2, 302, 125);
+  drawFloatNum(mortalRate, 2, 302, 185);
+
+  tft.setTextDatum(TR_DATUM); // Align top right
+  tft.setFreeFont(FM9);
+  tft.setTextColor(tft.color565(224, 225, 232));
+  tft.drawString(summaryMsg, 310, 220);
 }
 
 // Display distinct data
@@ -740,8 +899,8 @@ void displayDistinct()
   tft.setTextDatum(TR_DATUM); // Align top right
   tft.setFreeFont(FM9);
   tft.setTextColor(tft.color565(224, 225, 232));
-  tft.drawString(distinctUpdated, 310, 220);
-};
+  tft.drawString(distinctMsg, 310, 220);
+}
 
 // Display people vaccinated
 void displayVaccinated()
@@ -774,13 +933,13 @@ void displayVaccinated()
   tft.setFreeFont(FM9);
   tft.setTextColor(TFT_TEXT_COLOR);
   tft.setTextDatum(TR_DATUM); // Align top right
-  tft.drawFloat(vaccinationRate, 2, 300, 165);
-  tft.drawFloat(partiallyVaccinationRate, 2, 300, 190);
+  drawFloatNum(vaccinationRate, 2, 300, 165);
+  drawFloatNum(partiallyVaccinationRate, 2, 300, 190);
 
   tft.setFreeFont(FM9);
   tft.setTextColor(TFT_TEXT_COLOR);
-  tft.drawString(vaccinesUpdated, 310, 220);
-};
+  tft.drawString(vaccinesMsg, 310, 220);
+}
 
 // Display widget to change country
 int widgetChangeCountry()
@@ -999,11 +1158,11 @@ void widgetChangeDistinct()
         distinctRecovered = docCases[distinctList[selectedDistinctID]]["recovered"].as<unsigned long>();
         if (selectedDistinctID == 0)
         {
-          distinctUpdated = "";
+          distinctMsg = "";
         }
         else
         {
-          distinctUpdated = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
+          distinctMsg = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
         }
         break;
       }
@@ -1078,11 +1237,11 @@ void widgetChangeDistinct()
         distinctRecovered = docCases[distinctList[selectedDistinctID]]["recovered"].as<unsigned long>();
         if (selectedDistinctID == 0)
         {
-          distinctUpdated = "";
+          distinctMsg = "";
         }
         else
         {
-          distinctUpdated = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
+          distinctMsg = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
         }
         break;
       }
@@ -1167,11 +1326,11 @@ void widgetChangeDistinct()
         distinctRecovered = docCases[distinctList[selectedDistinctID]]["recovered"].as<unsigned long>();
         if (selectedDistinctID == 0)
         {
-          distinctUpdated = "";
+          distinctMsg = "";
         }
         else
         {
-          distinctUpdated = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
+          distinctMsg = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
         }
         break;
       }
@@ -1264,18 +1423,30 @@ void widgetChangeDistinct()
         distinctRecovered = docCases[distinctList[selectedDistinctID]]["recovered"].as<unsigned long>();
         if (selectedDistinctID == 0)
         {
-          distinctUpdated = "";
+          distinctMsg = "";
         }
         else
         {
-          distinctUpdated = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
+          distinctMsg = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
         }
         break;
       }
     }
     break;
   }
-};
+}
+
+void drawFloatNum(float num, int fmt, uint16_t x, uint16_t y)
+{
+  if (isnan(num))
+  {
+    tft.drawString("NaN", x, y);
+  }
+  else
+  {
+    tft.drawFloat(num, fmt, x, y);
+  }
+}
 
 String clipText(const char *text, int maxWidth)
 {
@@ -1295,4 +1466,4 @@ String clipText(const char *text, int maxWidth)
   {
     return strText;
   }
-};
+}

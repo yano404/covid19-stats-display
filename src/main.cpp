@@ -623,6 +623,7 @@ void loop()
   Serial.println("[Distincts]");
   for (int i = 0; i != distinctNum; ++i)
   {
+    Serial.printf(" %03d: ", i);
     Serial.println(distinctList[i]);
   }
 
@@ -637,6 +638,12 @@ void loop()
   {
     distinctMsg = docCases[distinctList[distinctID]]["updated"].as<String>();
   }
+
+  Serial.println();
+  Serial.print("Refresh Interval: ");
+  Serial.print(REFRESH_INTERVAL / 60000);
+  Serial.println(" min");
+  Serial.println();
 
   // Display
   display();
@@ -690,6 +697,7 @@ void loop()
       display();
       delay(100);
     }
+    t1 = millis();
   }
 
   loopCount++;
@@ -702,7 +710,8 @@ int getDataMMedia(const String url, DynamicJsonDocument &doc)
   HTTPClient https;
   int success = 0;
 
-  //https.setTimeout(10000);
+  // Set timeout
+  https.setTimeout(1000);
   Serial.println("Attempting to get the data from MMedia");
   Serial.print("[HTTPS] begin...\n");
 
@@ -759,7 +768,7 @@ int getDataUNStats(int countryID, DynamicJsonDocument &doc)
                  "&outSR=4326&f=pjson";
 
     // Set timeout
-    //https.setTimeout(5000);
+    https.setTimeout(1000);
 
     Serial.print("Attempting to get the data from UNStats\n");
     Serial.print("[HTTPS] begin...\n");

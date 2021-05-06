@@ -5,16 +5,16 @@ Display COVID-19 stats on Wio Terminal.
 
 ## Installation
 1. Change the `ssid` and `password` to your WiFi network.
-   ```c++ : src/main.cpp
+   ```c++:src/main.cpp
    const char *ssid = "Your WiFi SSID";            // WiFi SSID
    const char *password = "Your WiFi Password";    // WiFi PASS
    ```
 2. (Optional) Change the default country. Country ID is shown in [the table below](#list-of-countries).
-   ```c++ : src/main.cpp
+   ```c++:src/main.cpp
    int countryID = 18;                             // Default: Japan
    ```
 3. (Optional) Change the refresh interval.
-   ```c++ : src/main.cpp
+   ```c++:src/main.cpp
    const unsigned long REFRESH_INTERVAL = 3600000; // 60min
    ```
 4. Upload to Wio Terminal

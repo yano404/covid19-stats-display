@@ -362,6 +362,8 @@ float partiallyVaccinationRate;
 unsigned long districtConfirmed;
 unsigned long districtDeaths;
 unsigned long districtRecovered;
+unsigned long districtActive;
+float districtMortalRate;
 String districtMsg;
 String vaccinesMsg;
 String summaryMsg;
@@ -384,6 +386,8 @@ void displayVaccinated();
 int widgetChangeCountry();
 // Display widget to change district
 void widgetChangeDistrict();
+// Funtion to set the values of the district
+void setDistrict(int);
 // Function to clip text
 String clipText(const char *, int);
 
@@ -554,6 +558,15 @@ void loop()
     totalRecovered = 0;
     totalActive = 0;
     population = NAN;
+    districtNum = 1;
+    districtList[0] = "All";
+    deserializeJson(
+        docCases,
+        "{\"All\": {\"confirmed\":" +
+            String(totalConfirmed) +
+            "\"recovered\":" +
+            String(totalRecovered) + "\"deaths\":" +
+            String(totalDeaths) + "}}");
     summaryMsg = "Failed";
   }
 
@@ -627,17 +640,7 @@ void loop()
     Serial.println(districtList[i]);
   }
 
-  districtConfirmed = docCases[districtList[districtID]]["confirmed"].as<unsigned long>();
-  districtDeaths = docCases[districtList[districtID]]["deaths"].as<unsigned long>();
-  districtRecovered = docCases[districtList[districtID]]["recovered"].as<unsigned long>();
-  if (districtID == 0)
-  {
-    districtMsg = "";
-  }
-  else
-  {
-    districtMsg = docCases[districtList[districtID]]["updated"].as<String>();
-  }
+  setDistrict(districtID);
 
   Serial.println();
   Serial.print("Refresh Interval: ");
@@ -886,24 +889,40 @@ void displayDistrict()
   tft.setTextDatum(TC_DATUM); // Align top center
   tft.drawString(clipText(districtList[districtID], 310), 160, 10);
 
-  tft.fillRect(10, 35, 300, 55, TFT_TEXT_BG_COLOR);
-  tft.fillRect(10, 95, 300, 55, TFT_TEXT_BG_COLOR);
-  tft.fillRect(10, 155, 300, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(8, 35, 304, 55, TFT_TEXT_BG_COLOR);
+
+  tft.fillRect(8, 95, 150, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(8, 155, 150, 55, TFT_TEXT_BG_COLOR);
+
+  tft.fillRect(162, 95, 150, 55, TFT_TEXT_BG_COLOR);
+  tft.fillRect(162, 155, 150, 55, TFT_TEXT_BG_COLOR);
 
   tft.setFreeFont(FM9);
   tft.drawString("Total Confirmed", 160, 40);
-  tft.drawString("Total Deaths", 160, 100);
-  tft.drawString("Total Recovered", 160, 160);
+
+  tft.drawString("Deaths", 83, 100);
+  tft.drawString("Recovered", 83, 160);
+  tft.drawString("Active", 236, 100);
+  tft.drawString("Death Rate", 236, 160);
 
   tft.setTextDatum(TC_DATUM); // Align top center
   tft.setFreeFont(FMB12);
 
   tft.setTextColor(TFT_RED);
   tft.drawNumber(districtConfirmed, 160, 65);
-  tft.setTextColor(tft.color565(224, 225, 232));
-  tft.drawNumber(districtDeaths, 160, 125);
+
+  tft.setTextDatum(TR_DATUM); // Align top right
+  tft.setFreeFont(FMB12);
+
+  tft.setTextColor(TFT_TEXT_COLOR);
+  tft.drawNumber(districtDeaths, 148, 125);
   tft.setTextColor(TFT_GREEN);
-  tft.drawNumber(districtRecovered, 160, 185);
+  tft.drawNumber(districtRecovered, 148, 185);
+
+  tft.setTextColor(TFT_RED);
+  tft.drawNumber(districtActive, 302, 125);
+  tft.setTextColor(TFT_TEXT_COLOR);
+  drawFloatNum(districtMortalRate, 2, 302, 185);
 
   tft.setTextDatum(TR_DATUM); // Align top right
   tft.setFreeFont(FM9);
@@ -1161,18 +1180,7 @@ void widgetChangeDistrict()
       }
       else if (swPRESS == LOW)
       {
-        districtID = selectedDistrictID;
-        districtConfirmed = docCases[districtList[selectedDistrictID]]["confirmed"].as<unsigned long>();
-        districtDeaths = docCases[districtList[selectedDistrictID]]["deaths"].as<unsigned long>();
-        districtRecovered = docCases[districtList[selectedDistrictID]]["recovered"].as<unsigned long>();
-        if (selectedDistrictID == 0)
-        {
-          districtMsg = "";
-        }
-        else
-        {
-          districtMsg = docCases[districtList[selectedDistrictID]]["updated"].as<String>();
-        }
+        setDistrict(selectedDistrictID);
         break;
       }
     }
@@ -1240,18 +1248,7 @@ void widgetChangeDistrict()
       }
       else if (swPRESS == LOW)
       {
-        districtID = selectedDistrictID;
-        districtConfirmed = docCases[districtList[selectedDistrictID]]["confirmed"].as<unsigned long>();
-        districtDeaths = docCases[districtList[selectedDistrictID]]["deaths"].as<unsigned long>();
-        districtRecovered = docCases[districtList[selectedDistrictID]]["recovered"].as<unsigned long>();
-        if (selectedDistrictID == 0)
-        {
-          districtMsg = "";
-        }
-        else
-        {
-          districtMsg = docCases[districtList[selectedDistrictID]]["updated"].as<String>();
-        }
+        setDistrict(selectedDistrictID);
         break;
       }
     }
@@ -1329,18 +1326,7 @@ void widgetChangeDistrict()
       }
       else if (swPRESS == LOW)
       {
-        districtID = selectedDistrictID;
-        districtConfirmed = docCases[districtList[selectedDistrictID]]["confirmed"].as<unsigned long>();
-        districtDeaths = docCases[districtList[selectedDistrictID]]["deaths"].as<unsigned long>();
-        districtRecovered = docCases[districtList[selectedDistrictID]]["recovered"].as<unsigned long>();
-        if (selectedDistrictID == 0)
-        {
-          districtMsg = "";
-        }
-        else
-        {
-          districtMsg = docCases[districtList[selectedDistrictID]]["updated"].as<String>();
-        }
+        setDistrict(selectedDistrictID);
         break;
       }
     }
@@ -1426,22 +1412,36 @@ void widgetChangeDistrict()
       }
       else if (swPRESS == LOW)
       {
-        districtID = selectedDistrictID;
-        districtConfirmed = docCases[districtList[selectedDistrictID]]["confirmed"].as<unsigned long>();
-        districtDeaths = docCases[districtList[selectedDistrictID]]["deaths"].as<unsigned long>();
-        districtRecovered = docCases[districtList[selectedDistrictID]]["recovered"].as<unsigned long>();
-        if (selectedDistrictID == 0)
-        {
-          districtMsg = "";
-        }
-        else
-        {
-          districtMsg = docCases[districtList[selectedDistrictID]]["updated"].as<String>();
-        }
+        setDistrict(selectedDistrictID);
         break;
       }
     }
     break;
+  }
+}
+
+void setDistrict(int id)
+{
+  districtID = id;
+  districtConfirmed = docCases[districtList[id]]["confirmed"].as<unsigned long>();
+  districtDeaths = docCases[districtList[id]]["deaths"].as<unsigned long>();
+  districtRecovered = docCases[districtList[id]]["recovered"].as<unsigned long>();
+  districtActive = districtConfirmed - districtDeaths - districtRecovered;
+  if (districtConfirmed == 0)
+  {
+    districtMortalRate = NAN;
+  }
+  else
+  {
+    districtMortalRate = (float)districtDeaths / districtConfirmed * 100.0;
+  }
+  if (id == 0)
+  {
+    districtMsg = "";
+  }
+  else
+  {
+    districtMsg = docCases[districtList[districtID]]["updated"].as<String>();
   }
 }
 

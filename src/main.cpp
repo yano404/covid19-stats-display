@@ -558,6 +558,15 @@ void loop()
     totalRecovered = 0;
     totalActive = 0;
     population = NAN;
+    districtNum = 1;
+    districtList[0] = "All";
+    deserializeJson(
+        docCases,
+        "{\"All\": {\"confirmed\":" +
+            String(totalConfirmed) +
+            "\"recovered\":" +
+            String(totalRecovered) + "\"deaths\":" +
+            String(totalDeaths) + "}}");
     summaryMsg = "Failed";
   }
 
@@ -1418,7 +1427,14 @@ void setDistrict(int id)
   districtDeaths = docCases[districtList[id]]["deaths"].as<unsigned long>();
   districtRecovered = docCases[districtList[id]]["recovered"].as<unsigned long>();
   districtActive = districtConfirmed - districtDeaths - districtRecovered;
-  districtMortalRate = (float)districtDeaths / districtConfirmed * 100.0;
+  if (districtConfirmed == 0)
+  {
+    districtMortalRate = NAN;
+  }
+  else
+  {
+    districtMortalRate = (float)districtDeaths / districtConfirmed * 100.0;
+  }
   if (id == 0)
   {
     districtMsg = "";

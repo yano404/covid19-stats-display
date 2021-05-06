@@ -341,11 +341,11 @@ DynamicJsonDocument docUNStats(JSON_OBJECT_SIZE(300));
 
 /*
  * 0 -> summary
- * 1 -> distinct
+ * 1 -> district
  * 2 -> vaccinated
  */
 int displaySwitch = 0;
-int distinctID = 0; // default: 0 -> All
+int districtID = 0; // default: 0 -> All
 String country;
 float population;
 unsigned long totalConfirmed;
@@ -359,14 +359,14 @@ float incidentRate;
 float mortalRate;
 float vaccinationRate;
 float partiallyVaccinationRate;
-unsigned long distinctConfirmed;
-unsigned long distinctDeaths;
-unsigned long distinctRecovered;
-String distinctMsg;
+unsigned long districtConfirmed;
+unsigned long districtDeaths;
+unsigned long districtRecovered;
+String districtMsg;
 String vaccinesMsg;
 String summaryMsg;
-const char *distinctList[100];
-int distinctNum;
+const char *districtList[100];
+int districtNum;
 
 // Get data from API and deserialize JSON
 int getDataMMedia(const String, DynamicJsonDocument &);
@@ -376,14 +376,14 @@ int getDataUNStats(int, DynamicJsonDocument &);
 void display();
 // Display summary data
 void displaySummary();
-// Display distinct data
-void displayDistinct();
+// Display district data
+void displayDistrict();
 // Display people vaccinated
 void displayVaccinated();
 // Display widget to change country
 int widgetChangeCountry();
-// Display widget to change distinct
-void widgetChangeDistinct();
+// Display widget to change district
+void widgetChangeDistrict();
 // Function to clip text
 String clipText(const char *, int);
 
@@ -507,12 +507,12 @@ void loop()
     {
       population = NAN;
     }
-    // Generate distinctList
-    distinctNum = 0;
+    // Generate districtList
+    districtNum = 0;
     for (JsonObject::iterator itr = docCases.as<JsonObject>().begin(); itr != docCases.as<JsonObject>().end(); ++itr)
     {
-      distinctList[distinctNum] = itr->key().c_str();
-      distinctNum++;
+      districtList[districtNum] = itr->key().c_str();
+      districtNum++;
     }
     summaryMsg = "Success";
   }
@@ -535,8 +535,8 @@ void loop()
       population = NAN;
     }
 
-    distinctNum = 1;
-    distinctList[0] = "All";
+    districtNum = 1;
+    districtList[0] = "All";
     deserializeJson(
         docCases,
         "{\"All\": {\"confirmed\":" +
@@ -619,24 +619,24 @@ void loop()
   Serial.println(vaccinesMsg);
   Serial.println();
 
-  // Check distinctList
-  Serial.println("[Distincts]");
-  for (int i = 0; i != distinctNum; ++i)
+  // Check districtList
+  Serial.println("[Districts]");
+  for (int i = 0; i != districtNum; ++i)
   {
     Serial.printf(" %03d: ", i);
-    Serial.println(distinctList[i]);
+    Serial.println(districtList[i]);
   }
 
-  distinctConfirmed = docCases[distinctList[distinctID]]["confirmed"].as<unsigned long>();
-  distinctDeaths = docCases[distinctList[distinctID]]["deaths"].as<unsigned long>();
-  distinctRecovered = docCases[distinctList[distinctID]]["recovered"].as<unsigned long>();
-  if (distinctID == 0)
+  districtConfirmed = docCases[districtList[districtID]]["confirmed"].as<unsigned long>();
+  districtDeaths = docCases[districtList[districtID]]["deaths"].as<unsigned long>();
+  districtRecovered = docCases[districtList[districtID]]["recovered"].as<unsigned long>();
+  if (districtID == 0)
   {
-    distinctMsg = "";
+    districtMsg = "";
   }
   else
   {
-    distinctMsg = docCases[distinctList[distinctID]]["updated"].as<String>();
+    districtMsg = docCases[districtList[districtID]]["updated"].as<String>();
   }
 
   Serial.println();
@@ -667,8 +667,8 @@ void loop()
     int swB = digitalRead(WIO_KEY_B);
     if (swB == LOW)
     {
-      // Open the widget to change distinct
-      widgetChangeDistinct();
+      // Open the widget to change district
+      widgetChangeDistrict();
       display();
       delay(100);
     }
@@ -817,7 +817,7 @@ void display()
     break;
 
   case 1:
-    displayDistinct();
+    displayDistrict();
     break;
 
   case 2:
@@ -877,14 +877,14 @@ void displaySummary()
   tft.drawString(summaryMsg, 310, 220);
 }
 
-// Display distinct data
-void displayDistinct()
+// Display district data
+void displayDistrict()
 {
   tft.fillScreen(TFT_BG_COLOR);
   tft.setFreeFont(FF17);
   tft.setTextColor(TFT_TEXT_COLOR);
   tft.setTextDatum(TC_DATUM); // Align top center
-  tft.drawString(clipText(distinctList[distinctID], 310), 160, 10);
+  tft.drawString(clipText(districtList[districtID], 310), 160, 10);
 
   tft.fillRect(10, 35, 300, 55, TFT_TEXT_BG_COLOR);
   tft.fillRect(10, 95, 300, 55, TFT_TEXT_BG_COLOR);
@@ -899,16 +899,16 @@ void displayDistinct()
   tft.setFreeFont(FMB12);
 
   tft.setTextColor(TFT_RED);
-  tft.drawNumber(distinctConfirmed, 160, 65);
+  tft.drawNumber(districtConfirmed, 160, 65);
   tft.setTextColor(tft.color565(224, 225, 232));
-  tft.drawNumber(distinctDeaths, 160, 125);
+  tft.drawNumber(districtDeaths, 160, 125);
   tft.setTextColor(TFT_GREEN);
-  tft.drawNumber(distinctRecovered, 160, 185);
+  tft.drawNumber(districtRecovered, 160, 185);
 
   tft.setTextDatum(TR_DATUM); // Align top right
   tft.setFreeFont(FM9);
   tft.setTextColor(tft.color565(224, 225, 232));
-  tft.drawString(distinctMsg, 310, 220);
+  tft.drawString(districtMsg, 310, 220);
 }
 
 // Display people vaccinated
@@ -1052,7 +1052,7 @@ int widgetChangeCountry()
     else if (swPRESS == LOW)
     {
       countryID = selectedCountryID;
-      distinctID = 0;
+      districtID = 0;
       changed = 1;
       break;
     }
@@ -1060,16 +1060,16 @@ int widgetChangeCountry()
   return changed;
 };
 
-// Display widget to change distinct
-void widgetChangeDistinct()
+// Display widget to change district
+void widgetChangeDistrict()
 {
-  int selectedDistinctID = distinctID;
+  int selectedDistrictID = districtID;
 
   tft.fillScreen(TFT_BG_COLOR);
   tft.setFreeFont(FF17);
   tft.setTextColor(TFT_TEXT_COLOR);
   tft.setTextDatum(TC_DATUM); // Align top center
-  tft.drawString("Select Distinct", 160, 10);
+  tft.drawString("Select District", 160, 10);
 
   tft.fillRoundRect(10, 35, 300, 35, 5, TFT_TEXT_BG_COLOR);
   tft.fillRoundRect(10, 75, 300, 35, 5, TFT_TEXT_BG_COLOR);
@@ -1083,14 +1083,14 @@ void widgetChangeDistinct()
 
   int max_text_width = 290;
 
-  switch (distinctNum)
+  switch (districtNum)
   {
   case 1:
     /* [All] */
     while (1)
     {
       tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-      tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+      tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
       tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
       tft.drawString("", 160, 53);
       tft.drawString("", 160, 93);
@@ -1113,24 +1113,24 @@ void widgetChangeDistinct()
     /* [All, x1] */
     while (1)
     {
-      if (selectedDistinctID == 0)
+      if (selectedDistrictID == 0)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
         tft.drawString("", 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
         tft.drawString("", 160, 213);
       }
       else
       {
-        /* selectedDistinctID == 1 */
+        /* selectedDistrictID == 1 */
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
         tft.drawString("", 160, 173);
         tft.drawString("", 160, 213);
       }
@@ -1143,16 +1143,16 @@ void widgetChangeDistinct()
       int swPRESS = digitalRead(WIO_5S_PRESS);
       if (swDOWN == LOW)
       {
-        if (selectedDistinctID != distinctNum - 1)
+        if (selectedDistrictID != districtNum - 1)
         {
-          selectedDistinctID++;
+          selectedDistrictID++;
         }
       }
       else if (swUP == LOW)
       {
-        if (selectedDistinctID != 0)
+        if (selectedDistrictID != 0)
         {
-          selectedDistinctID--;
+          selectedDistrictID--;
         }
       }
       if (swB == LOW)
@@ -1161,17 +1161,17 @@ void widgetChangeDistinct()
       }
       else if (swPRESS == LOW)
       {
-        distinctID = selectedDistinctID;
-        distinctConfirmed = docCases[distinctList[selectedDistinctID]]["confirmed"].as<unsigned long>();
-        distinctDeaths = docCases[distinctList[selectedDistinctID]]["deaths"].as<unsigned long>();
-        distinctRecovered = docCases[distinctList[selectedDistinctID]]["recovered"].as<unsigned long>();
-        if (selectedDistinctID == 0)
+        districtID = selectedDistrictID;
+        districtConfirmed = docCases[districtList[selectedDistrictID]]["confirmed"].as<unsigned long>();
+        districtDeaths = docCases[districtList[selectedDistrictID]]["deaths"].as<unsigned long>();
+        districtRecovered = docCases[districtList[selectedDistrictID]]["recovered"].as<unsigned long>();
+        if (selectedDistrictID == 0)
         {
-          distinctMsg = "";
+          districtMsg = "";
         }
         else
         {
-          distinctMsg = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
+          districtMsg = docCases[districtList[selectedDistrictID]]["updated"].as<String>();
         }
         break;
       }
@@ -1182,34 +1182,34 @@ void widgetChangeDistinct()
     /* [All, x1, x2] */
     while (1)
     {
-      if (selectedDistinctID == 0)
+      if (selectedDistrictID == 0)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
         tft.drawString("", 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 2], max_text_width), 160, 213);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID + 2], max_text_width), 160, 213);
       }
-      else if (selectedDistinctID == 1)
+      else if (selectedDistrictID == 1)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
         tft.drawString("", 160, 213);
       }
       else
       {
-        /* selectedDistinctID == 2 */
+        /* selectedDistrictID == 2 */
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID - 2], max_text_width), 160, 53);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
         tft.drawString("", 160, 173);
         tft.drawString("", 160, 213);
       }
@@ -1222,16 +1222,16 @@ void widgetChangeDistinct()
       int swPRESS = digitalRead(WIO_5S_PRESS);
       if (swDOWN == LOW)
       {
-        if (selectedDistinctID != distinctNum - 1)
+        if (selectedDistrictID != districtNum - 1)
         {
-          selectedDistinctID++;
+          selectedDistrictID++;
         }
       }
       else if (swUP == LOW)
       {
-        if (selectedDistinctID != 0)
+        if (selectedDistrictID != 0)
         {
-          selectedDistinctID--;
+          selectedDistrictID--;
         }
       }
       if (swB == LOW)
@@ -1240,17 +1240,17 @@ void widgetChangeDistinct()
       }
       else if (swPRESS == LOW)
       {
-        distinctID = selectedDistinctID;
-        distinctConfirmed = docCases[distinctList[selectedDistinctID]]["confirmed"].as<unsigned long>();
-        distinctDeaths = docCases[distinctList[selectedDistinctID]]["deaths"].as<unsigned long>();
-        distinctRecovered = docCases[distinctList[selectedDistinctID]]["recovered"].as<unsigned long>();
-        if (selectedDistinctID == 0)
+        districtID = selectedDistrictID;
+        districtConfirmed = docCases[districtList[selectedDistrictID]]["confirmed"].as<unsigned long>();
+        districtDeaths = docCases[districtList[selectedDistrictID]]["deaths"].as<unsigned long>();
+        districtRecovered = docCases[districtList[selectedDistrictID]]["recovered"].as<unsigned long>();
+        if (selectedDistrictID == 0)
         {
-          distinctMsg = "";
+          districtMsg = "";
         }
         else
         {
-          distinctMsg = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
+          districtMsg = docCases[districtList[selectedDistrictID]]["updated"].as<String>();
         }
         break;
       }
@@ -1261,45 +1261,45 @@ void widgetChangeDistinct()
     /* [All, x1, x2, x3] */
     while (1)
     {
-      if (selectedDistinctID == 0)
+      if (selectedDistrictID == 0)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
         tft.drawString("", 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 2], max_text_width), 160, 213);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID + 2], max_text_width), 160, 213);
       }
-      else if (selectedDistinctID == 1)
+      else if (selectedDistrictID == 1)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 2], max_text_width), 160, 213);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID + 2], max_text_width), 160, 213);
       }
-      else if (selectedDistinctID == distinctNum - 1)
+      else if (selectedDistrictID == districtNum - 1)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID - 2], max_text_width), 160, 53);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
         tft.drawString("", 160, 173);
         tft.drawString("", 160, 213);
       }
       else
       {
-        /* selectedDistinctID == 2 */
+        /* selectedDistrictID == 2 */
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID - 2], max_text_width), 160, 53);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
         tft.drawString("", 160, 213);
       }
 
@@ -1311,16 +1311,16 @@ void widgetChangeDistinct()
       int swPRESS = digitalRead(WIO_5S_PRESS);
       if (swDOWN == LOW)
       {
-        if (selectedDistinctID != distinctNum - 1)
+        if (selectedDistrictID != districtNum - 1)
         {
-          selectedDistinctID++;
+          selectedDistrictID++;
         }
       }
       else if (swUP == LOW)
       {
-        if (selectedDistinctID != 0)
+        if (selectedDistrictID != 0)
         {
-          selectedDistinctID--;
+          selectedDistrictID--;
         }
       }
       if (swB == LOW)
@@ -1329,17 +1329,17 @@ void widgetChangeDistinct()
       }
       else if (swPRESS == LOW)
       {
-        distinctID = selectedDistinctID;
-        distinctConfirmed = docCases[distinctList[selectedDistinctID]]["confirmed"].as<unsigned long>();
-        distinctDeaths = docCases[distinctList[selectedDistinctID]]["deaths"].as<unsigned long>();
-        distinctRecovered = docCases[distinctList[selectedDistinctID]]["recovered"].as<unsigned long>();
-        if (selectedDistinctID == 0)
+        districtID = selectedDistrictID;
+        districtConfirmed = docCases[districtList[selectedDistrictID]]["confirmed"].as<unsigned long>();
+        districtDeaths = docCases[districtList[selectedDistrictID]]["deaths"].as<unsigned long>();
+        districtRecovered = docCases[districtList[selectedDistrictID]]["recovered"].as<unsigned long>();
+        if (selectedDistrictID == 0)
         {
-          distinctMsg = "";
+          districtMsg = "";
         }
         else
         {
-          distinctMsg = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
+          districtMsg = docCases[districtList[selectedDistrictID]]["updated"].as<String>();
         }
         break;
       }
@@ -1349,55 +1349,55 @@ void widgetChangeDistinct()
   default:
     while (1)
     {
-      if (selectedDistinctID == 0)
+      if (selectedDistrictID == 0)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
         tft.drawString("", 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 2], max_text_width), 160, 213);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID + 2], max_text_width), 160, 213);
       }
-      else if (selectedDistinctID == 1)
+      else if (selectedDistrictID == 1)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
         tft.drawString("", 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 2], max_text_width), 160, 213);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID + 2], max_text_width), 160, 213);
       }
-      else if (selectedDistinctID == distinctNum - 1)
+      else if (selectedDistrictID == districtNum - 1)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID - 2], max_text_width), 160, 53);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
         tft.drawString("", 160, 173);
         tft.drawString("", 160, 213);
       }
-      else if (selectedDistinctID == distinctNum - 2)
+      else if (selectedDistrictID == districtNum - 2)
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID - 2], max_text_width), 160, 53);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
         tft.drawString("", 160, 213);
       }
       else
       {
         tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID], max_text_width), 160, 133);
+        tft.drawString(clipText(districtList[selectedDistrictID], max_text_width), 160, 133);
         tft.setTextColor(TFT_TEXT_COLOR, TFT_TEXT_BG_COLOR);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 2], max_text_width), 160, 53);
-        tft.drawString(clipText(distinctList[selectedDistinctID - 1], max_text_width), 160, 93);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 1], max_text_width), 160, 173);
-        tft.drawString(clipText(distinctList[selectedDistinctID + 2], max_text_width), 160, 213);
+        tft.drawString(clipText(districtList[selectedDistrictID - 2], max_text_width), 160, 53);
+        tft.drawString(clipText(districtList[selectedDistrictID - 1], max_text_width), 160, 93);
+        tft.drawString(clipText(districtList[selectedDistrictID + 1], max_text_width), 160, 173);
+        tft.drawString(clipText(districtList[selectedDistrictID + 2], max_text_width), 160, 213);
       }
 
       delay(100); // Without delay, scroll speed is too fast.
@@ -1408,16 +1408,16 @@ void widgetChangeDistinct()
       int swPRESS = digitalRead(WIO_5S_PRESS);
       if (swDOWN == LOW)
       {
-        if (selectedDistinctID != distinctNum - 1)
+        if (selectedDistrictID != districtNum - 1)
         {
-          selectedDistinctID++;
+          selectedDistrictID++;
         }
       }
       else if (swUP == LOW)
       {
-        if (selectedDistinctID != 0)
+        if (selectedDistrictID != 0)
         {
-          selectedDistinctID--;
+          selectedDistrictID--;
         }
       }
       if (swB == LOW)
@@ -1426,17 +1426,17 @@ void widgetChangeDistinct()
       }
       else if (swPRESS == LOW)
       {
-        distinctID = selectedDistinctID;
-        distinctConfirmed = docCases[distinctList[selectedDistinctID]]["confirmed"].as<unsigned long>();
-        distinctDeaths = docCases[distinctList[selectedDistinctID]]["deaths"].as<unsigned long>();
-        distinctRecovered = docCases[distinctList[selectedDistinctID]]["recovered"].as<unsigned long>();
-        if (selectedDistinctID == 0)
+        districtID = selectedDistrictID;
+        districtConfirmed = docCases[districtList[selectedDistrictID]]["confirmed"].as<unsigned long>();
+        districtDeaths = docCases[districtList[selectedDistrictID]]["deaths"].as<unsigned long>();
+        districtRecovered = docCases[districtList[selectedDistrictID]]["recovered"].as<unsigned long>();
+        if (selectedDistrictID == 0)
         {
-          distinctMsg = "";
+          districtMsg = "";
         }
         else
         {
-          distinctMsg = docCases[distinctList[selectedDistinctID]]["updated"].as<String>();
+          districtMsg = docCases[districtList[selectedDistrictID]]["updated"].as<String>();
         }
         break;
       }

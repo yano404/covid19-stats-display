@@ -10,10 +10,11 @@ TFT_eSPI tft;
 WiFiClientSecure clientMMedia;
 WiFiClientSecure clientUNStats;
 
-const char *ssid = "Your WiFi SSID";            // WiFi SSID
-const char *password = "Your WiFi Password";    // WiFi PASS
-const unsigned long REFRESH_INTERVAL = 3600000; // 60min
-int countryID = 18;                             // Default: Japan
+const char *ssid = "Your WiFi SSID";                    // WiFi SSID
+const char *password = "Your WiFi Password";            // WiFi PASS
+const unsigned long REFRESH_INTERVAL_SUCCESS = 3600000; // 60min. When it succeeds to fetch the data.
+const unsigned long REFRESH_INTERVAL_FAILED = 300000;   //  5min. When it fails to fetch the data.
+int countryID = 18;                                     // Default: Japan
 const int TRY_MAX_NUM = 5;
 
 // COUNTRIES_VACCINE_QUERY is used to get the number of vaccinated from API.
@@ -652,9 +653,19 @@ void loop()
 
   setDistrict(districtID);
 
+  unsigned long refreshInterval;
+  if (/*successCases &&*/ successUNStats && successVaccines)
+  {
+    refreshInterval = REFRESH_INTERVAL_SUCCESS;
+  }
+  else
+  {
+    refreshInterval = REFRESH_INTERVAL_FAILED;
+  }
+
   Serial.println();
   Serial.print("Refresh Interval: ");
-  Serial.print(REFRESH_INTERVAL / 60000);
+  Serial.print(refreshInterval / 60000);
   Serial.println(" min");
   Serial.println();
 
@@ -663,7 +674,7 @@ void loop()
 
   unsigned long t0 = millis();
   unsigned long t1 = millis();
-  while (t1 >= t0 && t1 - t0 < REFRESH_INTERVAL)
+  while (t1 >= t0 && t1 - t0 < refreshInterval)
   {
     int swC = digitalRead(WIO_KEY_C);
     if (swC == LOW)

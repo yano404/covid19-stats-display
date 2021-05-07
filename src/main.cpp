@@ -559,6 +559,7 @@ void loop()
     totalDeaths = 0;
     totalRecovered = 0;
     totalActive = 0;
+    mortalRate = NAN;
     population = NAN;
     districtNum = 1;
     districtList[0] = "All";

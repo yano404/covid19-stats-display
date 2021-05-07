@@ -545,9 +545,10 @@ void loop()
     deserializeJson(
         docCases,
         "{\"All\": {\"confirmed\":" +
-            String(totalConfirmed) +
+            String(totalConfirmed) + "," +
             "\"recovered\":" +
-            String(totalRecovered) + "\"deaths\":" +
+            String(totalRecovered) + "," +
+            "\"deaths\":" +
             String(totalDeaths) + "}}");
     summaryMsg = "Partially failed";
   }
@@ -564,9 +565,10 @@ void loop()
     deserializeJson(
         docCases,
         "{\"All\": {\"confirmed\":" +
-            String(totalConfirmed) +
+            String(totalConfirmed) + "," +
             "\"recovered\":" +
-            String(totalRecovered) + "\"deaths\":" +
+            String(totalRecovered) + "," +
+            "\"deaths\":" +
             String(totalDeaths) + "}}");
     summaryMsg = "Failed";
   }

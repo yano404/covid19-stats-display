@@ -207,6 +207,7 @@ const static char *COUNTRIES_OBJECT_IDS[] = {
     "188",
     "" // global does not exist
 };
+const int COUNTRY_WORLD_ID = COUNTRIES_NUM - 1;
 
 String baseURLMMedia = "https://covid-api.mmediagroup.fr/v1/";
 const char *mmedia_root_ca =
@@ -520,7 +521,7 @@ void loop()
     }
     summaryMsg = "Success";
   }
-  else if (successUNStats && countryID != COUNTRIES_NUM - 1)
+  else if (successUNStats && countryID != COUNTRY_WORLD_ID)
   {
     // If it is failed to get the data from mmedia API, use the data from UNStats.
     totalConfirmed = docUNStats["features"][0]["attributes"]["Confirmed"].as<unsigned long>();
@@ -544,9 +545,10 @@ void loop()
     deserializeJson(
         docCases,
         "{\"All\": {\"confirmed\":" +
-            String(totalConfirmed) +
+            String(totalConfirmed) + "," +
             "\"recovered\":" +
-            String(totalRecovered) + "\"deaths\":" +
+            String(totalRecovered) + "," +
+            "\"deaths\":" +
             String(totalDeaths) + "}}");
     summaryMsg = "Partially failed";
   }
@@ -563,16 +565,17 @@ void loop()
     deserializeJson(
         docCases,
         "{\"All\": {\"confirmed\":" +
-            String(totalConfirmed) +
+            String(totalConfirmed) + "," +
             "\"recovered\":" +
-            String(totalRecovered) + "\"deaths\":" +
+            String(totalRecovered) + "," +
+            "\"deaths\":" +
             String(totalDeaths) + "}}");
     summaryMsg = "Failed";
   }
 
   if (successUNStats)
   {
-    if (countryID == COUNTRIES_NUM - 1)
+    if (countryID == COUNTRY_WORLD_ID)
     {
       incidentRate = NAN;
     }
@@ -638,6 +641,12 @@ void loop()
   {
     Serial.printf(" %03d: ", i);
     Serial.println(districtList[i]);
+  }
+
+  if (districtID >= districtNum)
+  {
+    // There are the cases docCases does not contain enough data.
+    districtID = 0;
   }
 
   setDistrict(districtID);
@@ -755,7 +764,7 @@ int getDataMMedia(const String url, DynamicJsonDocument &doc)
 int getDataUNStats(int countryID, DynamicJsonDocument &doc)
 {
   int success = 0;
-  if (countryID == COUNTRIES_NUM - 1)
+  if (countryID == COUNTRY_WORLD_ID)
   {
     // If country == Global: incident rate does not exist
     success = 1;
@@ -1013,7 +1022,7 @@ int widgetChangeCountry()
       tft.drawString(COUNTRIES[selectedCountryID + 1], 160, 173);
       tft.drawString(COUNTRIES[selectedCountryID + 2], 160, 213);
     }
-    else if (selectedCountryID == COUNTRIES_NUM - 1)
+    else if (selectedCountryID == COUNTRY_WORLD_ID)
     {
       tft.setTextColor(TFT_TEXT_BG_COLOR, TFT_TEXT_COLOR);
       tft.drawString(COUNTRIES[selectedCountryID], 160, 133);
@@ -1052,7 +1061,7 @@ int widgetChangeCountry()
     int swPRESS = digitalRead(WIO_5S_PRESS);
     if (swDOWN == LOW)
     {
-      if (selectedCountryID != COUNTRIES_NUM - 1)
+      if (selectedCountryID != COUNTRY_WORLD_ID)
       {
         selectedCountryID++;
       }

@@ -641,7 +641,7 @@ void loop()
     Serial.println(districtList[i]);
   }
 
-  if (districtID > districtNum)
+  if (districtID >= districtNum)
   {
     // There are the cases docCases does not contain enough data.
     districtID = 0;

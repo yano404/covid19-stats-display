@@ -9,9 +9,13 @@ Display COVID-19 stats on Wio Terminal.
    const char *ssid = "Your WiFi SSID";         // WiFi SSID
    const char *password = "Your WiFi Password"; // WiFi PASS
    ```
-2. (Optional) Change the default country. Country ID is shown in [the table below](#list-of-countries).
+2. (Optional) Change the default country and default district.
+   Country ID is shown in [the table below](#list-of-countries).
+   Set `defaultDistrictID=0` to disable default district.
+   To get district IDs, see serial monitor.
    ```c++:src/main.cpp
-   int countryID = 18; // Default: Japan
+   int defaultCountryID = 18;  // Default: Japan
+   int defaultDistrictID = 22; // Default district ID of default country.
    ```
 3. (Optional) Change the refresh interval.
    ```c++:src/main.cpp

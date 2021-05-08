@@ -14,7 +14,9 @@ const char *ssid = "Your WiFi SSID";                    // WiFi SSID
 const char *password = "Your WiFi Password";            // WiFi PASS
 const unsigned long REFRESH_INTERVAL_SUCCESS = 3600000; // 60min. When it succeeds to fetch the data.
 const unsigned long REFRESH_INTERVAL_FAILED = 300000;   //  5min. When it fails to fetch the data.
-int countryID = 18;                                     // Default: Japan
+int defaultCountryID = 18;                              // Default: Japan
+int defaultDistrictID = 22;                             // Default district ID of default country.
+int countryID = defaultCountryID;
 const int TRY_MAX_NUM = 5;
 
 // COUNTRIES_VACCINE_QUERY is used to get the number of vaccinated from API.
@@ -643,6 +645,11 @@ void loop()
   {
     Serial.printf(" %03d: ", i);
     Serial.println(districtList[i]);
+  }
+
+  if (countryID == defaultCountryID && districtID == 0)
+  {
+    districtID = defaultDistrictID;
   }
 
   if (districtID >= districtNum)

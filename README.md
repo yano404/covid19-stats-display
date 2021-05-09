@@ -22,7 +22,11 @@ Display COVID-19 stats on Wio Terminal.
    const unsigned long REFRESH_INTERVAL_SUCCESS = 3600000; // 60min. When it succeeds to fetch the data.
    const unsigned long REFRESH_INTERVAL_FAILED = 300000;   //  5min. When it fails to fetch the data.
    ```
-4. Upload to Wio Terminal
+4. (Optional) Change the Time Zone.
+   ```c++:src/main.cpp
+   const int TIME_ZONE = 9; // Time zone
+   ```
+5. Upload to Wio Terminal
 
 ## Usage
 ### Switch the information displayed

@@ -3,6 +3,7 @@
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <TimeLib.h>
 #include "Free_Fonts.h"
 #include "TFT_eSPI.h"
 
@@ -18,6 +19,8 @@ int defaultCountryID = 18;                              // Default: Japan
 int defaultDistrictID = 22;                             // Default district ID of default country.
 int countryID = defaultCountryID;
 const int TRY_MAX_NUM = 5;
+const int TIME_ZONE = 9; // Time zone
+static const char *wd[7] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
 
 // COUNTRIES_VACCINE_QUERY is used to get the number of vaccinated from API.
 // COUNTRIES_CASES_QUERY is used to get the cases from API.
@@ -597,8 +600,28 @@ void loop()
   {
     vaccinated = docVaccinated["All"]["people_vaccinated"].as<unsigned long>();
     partiallyVaccinated = docVaccinated["All"]["people_partially_vaccinated"].as<unsigned long>();
-    vaccinesMsg = docVaccinated["All"]["updated"].as<String>();
     administered = docVaccinated["All"]["administered"].as<unsigned long>();
+    String updated = docVaccinated["All"]["updated"].as<String>();
+    tmElements_t tm;
+    tm.Year = updated.substring(0, 4).toInt() - 1970;
+    tm.Month = updated.substring(5, 7).toInt();
+    tm.Day = updated.substring(8, 10).toInt();
+    tm.Hour = updated.substring(11, 13).toInt();
+    tm.Minute = updated.substring(14, 16).toInt();
+    tm.Second = updated.substring(17, 19).toInt();
+    time_t updatedEpoch = makeTime(tm) + (updated.substring(20, 22).toInt() + TIME_ZONE) * 3600;
+    char updatedDate[24];
+    sprintf(
+        updatedDate,
+        "%04d-%02d-%02d(%s) %02d:%02d:%02d",
+        year(updatedEpoch),
+        month(updatedEpoch),
+        day(updatedEpoch),
+        wd[weekday(updatedEpoch) - 1],
+        hour(updatedEpoch),
+        minute(updatedEpoch),
+        second(updatedEpoch));
+    vaccinesMsg = updatedDate;
   }
   else
   {
@@ -1463,13 +1486,33 @@ void setDistrict(int id)
   {
     districtMortalRate = (float)districtDeaths / districtConfirmed * 100.0;
   }
-  if (id == 0)
+  if (docCases[districtList[districtID]].as<JsonObject>().containsKey("updated"))
   {
-    districtMsg = "";
+    String updated = docCases[districtList[districtID]]["updated"].as<String>();
+    tmElements_t tm;
+    tm.Year = updated.substring(0, 4).toInt() - 1970;
+    tm.Month = updated.substring(5, 7).toInt();
+    tm.Day = updated.substring(8, 10).toInt();
+    tm.Hour = updated.substring(11, 13).toInt();
+    tm.Minute = updated.substring(14, 16).toInt();
+    tm.Second = updated.substring(17, 19).toInt();
+    time_t updatedEpoch = makeTime(tm) + (updated.substring(20, 22).toInt() + TIME_ZONE) * 3600;
+    char updatedDate[24];
+    sprintf(
+        updatedDate,
+        "%04d-%02d-%02d(%s) %02d:%02d:%02d",
+        year(updatedEpoch),
+        month(updatedEpoch),
+        day(updatedEpoch),
+        wd[weekday(updatedEpoch) - 1],
+        hour(updatedEpoch),
+        minute(updatedEpoch),
+        second(updatedEpoch));
+    districtMsg = updatedDate;
   }
   else
   {
-    districtMsg = docCases[districtList[districtID]]["updated"].as<String>();
+    districtMsg = "";
   }
 }
 

@@ -21,6 +21,7 @@ int countryID = defaultCountryID;
 const int TRY_MAX_NUM = 5;
 const int TIME_ZONE = 9; // Time zone
 static const char *wd[7] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
+const int FETCH_DATA_DELAY = 500;
 
 // COUNTRIES_VACCINE_QUERY is used to get the number of vaccinated from API.
 // COUNTRIES_CASES_QUERY is used to get the cases from API.
@@ -427,6 +428,7 @@ void loop()
   int successCases = 0;
   int successVaccines = 0;
   int successUNStats = 0;
+  delay(FETCH_DATA_DELAY);
   for (int i = 0; i < TRY_MAX_NUM; i++)
   {
     Serial.println(i);
@@ -440,13 +442,13 @@ void loop()
   {
     tft.fillCircle(45, 50, 25, TFT_DARKGREEN);
     tft.drawString("OK", 45, 50);
-    delay(100);
+    delay(FETCH_DATA_DELAY);
   }
   else
   {
     tft.fillCircle(45, 50, 25, TFT_RED);
     tft.drawString("!", 45, 50);
-    delay(100);
+    delay(FETCH_DATA_DELAY);
   }
   for (int i = 0; i < TRY_MAX_NUM; i++)
   {
@@ -461,13 +463,13 @@ void loop()
   {
     tft.fillCircle(45, 120, 25, TFT_DARKGREEN);
     tft.drawString("OK", 45, 120);
-    delay(100);
+    delay(FETCH_DATA_DELAY);
   }
   else
   {
     tft.fillCircle(45, 120, 25, TFT_RED);
     tft.drawString("!", 45, 120);
-    delay(100);
+    delay(FETCH_DATA_DELAY);
   }
   //getDataMMedia(urlHistory, docHistory); // Too heavy
   for (int i = 0; i < TRY_MAX_NUM; i++)
@@ -483,13 +485,13 @@ void loop()
   {
     tft.fillCircle(45, 190, 25, TFT_DARKGREEN);
     tft.drawString("OK", 45, 190);
-    delay(100);
+    delay(FETCH_DATA_DELAY);
   }
   else
   {
     tft.fillCircle(45, 190, 25, TFT_RED);
     tft.drawString("!", 45, 190);
-    delay(100);
+    delay(FETCH_DATA_DELAY);
   }
   delay(1000);
   tft.setTextDatum(TL_DATUM); // Align top left (default)
